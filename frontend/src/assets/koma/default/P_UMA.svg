@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" class="shogi-piece promoted ">
+  <path d="M50 5 L15 25 L5 95 H95 L85 25 Z"
+        fill="#f5deb3"
+        stroke="#444"
+        stroke-width="2"
+        stroke-linejoin="round"/>
+  <text x="50" y="56" text-anchor="middle" font-size="32" font-family="serif" font-weight="bold" fill="#b22222" writing-mode="vertical-rl" glyph-orientation-vertical="0" >竜馬</text>
+</svg>

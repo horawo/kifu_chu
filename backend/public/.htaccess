@@ -1,0 +1,11 @@
+RewriteEngine On
+
+# Setup Options
+Options -Indexes
+
+# If the request is for a real file or directory, serve it directly
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Otherwise forward to index.php
+RewriteRule ^ index.php [QSA,L]
