@@ -66,7 +66,7 @@ const SignUpPage: React.FC = () => {
                     fontSize: '28px',
                     color: '#333'
                 }}>
-                    中将棋Web
+                    中将棋棋譜取るマン(仮)
                 </h1>
                 <p style={{
                     textAlign: 'center',
