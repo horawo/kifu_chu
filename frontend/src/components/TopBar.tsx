@@ -24,7 +24,7 @@ const TopBar: React.FC = () => {
             {/* Logo/Title */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
                 <Link to="/" style={{ color: '#fff', textDecoration: 'none', fontSize: '20px', fontWeight: '700' }}>
-                    中将棋Web
+                    中将棋棋譜取るマン(仮)
                 </Link>
 
                 {/* Navigation Links (only when logged in) */}
