@@ -63,7 +63,7 @@ const Board: React.FC<BoardProps> = ({ board, onSquareClick, selectedPos, validM
     // Modal Overlay Component (Inline for now)
     const renderPromotionModal = () => {
         if (!promotionCandidate) return null;
-        const { pos, piece, onConfirm } = promotionCandidate;
+        const { piece, onConfirm } = promotionCandidate;
 
         // Position Logic: Top-Right of the TARGET piece?
         // Since we are rendering inside the grid map, if we just render it IN the cell, z-index it.

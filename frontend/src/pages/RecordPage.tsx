@@ -13,6 +13,7 @@ const RecordPage: React.FC = () => {
     const location = useLocation();
     const { kifuId: routeKifuId } = useParams<{ kifuId: string }>();
 
+    const [initialBoard, setInitialBoard] = useState<BoardState>(createInitialBoard());
     const [board, setBoard] = useState<BoardState>(createInitialBoard());
     const [currentPlayer, setCurrentPlayer] = useState<Player>('sente');
     const [selectedPos, setSelectedPos] = useState<Position | null>(null);
@@ -21,12 +22,12 @@ const RecordPage: React.FC = () => {
     const [promotionPending, setPromotionPending] = useState<{
         from: Position;
         to: Position;
-        piece: any;
+        piece: Piece;
         isCapture: boolean;
     } | null>(null);
 
     const [multistepPending, setMultistepPending] = useState<{
-        piece: any;
+        piece: Piece;
         from: Position;
         step1: Position;
     } | null>(null);
@@ -52,6 +53,20 @@ const RecordPage: React.FC = () => {
     const [senteName, setSenteName] = useState<string>('先手');
     const [goteName, setGoteName] = useState<string>('後手');
 
+    /**
+     * Clone a board so move replay never mutates the saved starting position.
+     */
+    const cloneBoard = (source: BoardState): BoardState => {
+        return source.map(row => row.map(piece => piece ? { ...piece } : null));
+    };
+
+    /**
+     * Convert a board from the initial setup screen's left-to-right display into RecordPage coordinates.
+     */
+    const mirrorBoardHorizontally = (source: BoardState): BoardState => {
+        return source.map(row => row.slice().reverse().map(piece => piece ? { ...piece } : null));
+    };
+
     const openSaveDialog = (mode: 'overwrite' | 'new') => {
         setSaveMode(mode);
         setShowSaveDialog(true);
@@ -61,6 +76,7 @@ const RecordPage: React.FC = () => {
         const state = location.state as {
             csaText?: string;
             customBoard?: BoardState;
+            initialBoard?: BoardState;
             kifuId?: number;
             kifuName?: string;
             isPublic?: boolean;
@@ -68,7 +84,9 @@ const RecordPage: React.FC = () => {
         } | null;
 
         if (routeKifuId === 'new') {
-            setBoard(state?.customBoard || createInitialBoard());
+            const startBoard = state?.customBoard ? mirrorBoardHorizontally(state.customBoard) : createInitialBoard();
+            setInitialBoard(cloneBoard(startBoard));
+            setBoard(cloneBoard(startBoard));
             setMoves([]);
             setCurrentMoveIndex(-1);
             setCurrentPlayer('sente');
@@ -85,7 +103,7 @@ const RecordPage: React.FC = () => {
         if (isNaN(idNum)) return;
 
         if (state?.csaText) {
-            loadCSAText(state.csaText);
+            loadCSAText(state.csaText, state.initialBoard);
             setKifuId(state.kifuId || idNum);
             if (state.kifuName) setKifuName(state.kifuName);
             if (state.isPublic !== undefined) setIsPublic(state.isPublic);
@@ -95,7 +113,7 @@ const RecordPage: React.FC = () => {
         } else {
             api.getKifu(idNum).then(result => {
                 if (result.success && result.data) {
-                    loadCSAText(result.data.kifu_text);
+                    loadCSAText(result.data.kifu_text, result.data.initial_board);
                     setKifuId(idNum);
                     if ((result.data as any).title) setKifuName((result.data as any).title);
                     if (result.data.is_public !== undefined) setIsPublic(result.data.is_public);
@@ -109,11 +127,15 @@ const RecordPage: React.FC = () => {
         }
     }, [location.state, routeKifuId]);
 
-    const loadCSAText = (csaText: string) => {
+    /**
+     * Load CSA moves and replay them from the saved starting board when present.
+     */
+    const loadCSAText = (csaText: string, savedInitialBoard?: BoardState) => {
         try {
             const result = parseCSA(csaText);
             const loadedMoves: Move[] = [];
-            let currentBoard = createInitialBoard();
+            const startBoard = savedInitialBoard ? cloneBoard(savedInitialBoard) : createInitialBoard();
+            let currentBoard = cloneBoard(startBoard);
             let player: Player = 'sente';
 
             for (const parsedMove of result.moves) {
@@ -133,7 +155,8 @@ const RecordPage: React.FC = () => {
             }
             setMoves(loadedMoves);
             setCurrentMoveIndex(-1);
-            setBoard(createInitialBoard());
+            setInitialBoard(startBoard);
+            setBoard(cloneBoard(startBoard));
             setCurrentPlayer('sente');
         } catch (err) { }
     };
@@ -182,7 +205,7 @@ const RecordPage: React.FC = () => {
     };
 
     const replayMovesUpTo = (index: number): BoardState => {
-        let current = createInitialBoard();
+        let current = cloneBoard(initialBoard);
         for (let i = 0; i <= index; i++) {
             current = applyMove(current, moves[i]);
         }
@@ -205,7 +228,7 @@ const RecordPage: React.FC = () => {
         if (currentMoveIndex >= 0) {
             const newIndex = currentMoveIndex - 1;
             setCurrentMoveIndex(newIndex);
-            setBoard(newIndex >= 0 ? replayMovesUpTo(newIndex) : createInitialBoard());
+            setBoard(newIndex >= 0 ? replayMovesUpTo(newIndex) : cloneBoard(initialBoard));
             setCurrentPlayer(getPlayerForIndex(newIndex));
             setSelectedPos(null);
             setValidMoves([]);
@@ -229,7 +252,7 @@ const RecordPage: React.FC = () => {
 
     const jumpToMove = (index: number) => {
         setCurrentMoveIndex(index);
-        setBoard(index >= 0 ? replayMovesUpTo(index) : createInitialBoard());
+        setBoard(index >= 0 ? replayMovesUpTo(index) : cloneBoard(initialBoard));
         setCurrentPlayer(getPlayerForIndex(index));
         setSelectedPos(null);
         setValidMoves([]);
@@ -434,6 +457,7 @@ const RecordPage: React.FC = () => {
                     initialIsPublic={isPublic}
                     initialSenteName={senteName}
                     initialGoteName={goteName}
+                    initialBoard={initialBoard}
                     onClose={(savedSenteName?: string, savedGoteName?: string) => {
                         setShowSaveDialog(false);
                         if (savedSenteName) setSenteName(savedSenteName);

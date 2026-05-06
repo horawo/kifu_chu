@@ -2,10 +2,16 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
+/**
+ * Render global navigation and account actions for authenticated users.
+ */
 const TopBar: React.FC = () => {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
 
+    /**
+     * Log out the current user and return to the sign-in screen.
+     */
     const handleLogout = async () => {
         await logout();
         navigate('/signin');
@@ -101,6 +107,21 @@ const TopBar: React.FC = () => {
                         <span style={{ fontSize: '14px', color: '#ecf0f1' }}>
                             👤 {user.username}
                         </span>
+                        <Link
+                            to="/profile"
+                            style={{
+                                color: '#ecf0f1',
+                                textDecoration: 'none',
+                                fontSize: '14px',
+                                padding: '6px 12px',
+                                borderRadius: '4px',
+                                transition: 'background-color 0.2s'
+                            }}
+                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#34495e'}
+                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                        >
+                            ユーザー情報
+                        </Link>
                         <button
                             onClick={handleLogout}
                             style={{

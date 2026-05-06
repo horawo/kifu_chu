@@ -7,7 +7,11 @@ import RecordPage from './pages/RecordPage';
 import KifuListPage from './pages/KifuListPage';
 import InitialSetupPage from './pages/InitialSetupPage';
 import InitialListPage from './pages/InitialListPage';
+import UserProfilePage from './pages/UserProfilePage';
 
+/**
+ * Define the application shell and client-side routes.
+ */
 function App() {
   return (
     <AuthProvider>
@@ -21,6 +25,7 @@ function App() {
           <Route path="/kifu" element={<KifuListPage />} />
           <Route path="/setup" element={<InitialSetupPage />} />
           <Route path="/initial" element={<InitialListPage />} />
+          <Route path="/profile" element={<UserProfilePage />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
