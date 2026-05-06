@@ -154,7 +154,6 @@ const PiecePalette: React.FC<PiecePaletteProps> = ({ selectedPiece, onSelectPiec
             }}>
                 {pieceTypes.map(type => {
                     const isSelected = selectedPiece?.type === type && selectedPiece?.owner === activePlayer;
-                    const pieceData = PIECE_DATA[type];
                     const canPlace = canPlacePiece(type, activePlayer);
                     const count = getPieceCount(type, activePlayer);
                     const isDisabled = limitEnabled && !canPlace;
@@ -337,9 +336,11 @@ const InitialSetupPage: React.FC = () => {
         setCurrentInitialName('');
     };
 
+    /**
+     * Open the record page with the currently edited board as its starting position.
+     */
     const startRecording = () => {
-        // Navigate to RecordPage with custom board
-        navigate('/record/1', { state: { customBoard: board } });
+        navigate('/record/new', { state: { customBoard: board } });
     };
 
     const handleGoToList = () => {

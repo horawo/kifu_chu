@@ -52,6 +52,7 @@ const KifuListPage: React.FC = () => {
                         kifuId: kifuId,
                         kifuName: kifuName,
                         isPublic: result.data.is_public,
+                        initialBoard: result.data.initial_board,
                         editMode: editMode,
                         senteName: result.data.sente_name,
                         goteName: result.data.gote_name

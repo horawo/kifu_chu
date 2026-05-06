@@ -1,6 +1,5 @@
-import type { BoardState, Piece, Player, Position } from '../types';
+import type { BoardState, Player, Position } from '../types';
 import { createInitialBoard } from './chuShogiRules';
-import { PIECE_DATA } from './pieceData';
 
 // Map between standard/likely CSA codes and Internal Types
 // Using 2-char codes.

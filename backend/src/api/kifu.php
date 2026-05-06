@@ -22,7 +22,7 @@ if ($method === 'POST') {
             echo json_encode(['error' => 'Login required']);
             exit;
         }
-        
+
         try {
             $id = $data['id'] ?? null;
             $title = $data['title'] ?? 'Untitled';
@@ -30,12 +30,13 @@ if ($method === 'POST') {
             $isPublic = $data['is_public'] ?? true;
             $senteName = $data['sente_name'] ?? '先手';
             $goteName = $data['gote_name'] ?? '後手';
+            $initialBoardText = isset($data['initial_board']) ? json_encode($data['initial_board'], JSON_UNESCAPED_UNICODE) : null;
 
             if ($id) {
-                $kifuModel->update($id, $currentUserId, $title, $kifuText, $isPublic, $senteName, $goteName);
+                $kifuModel->update($id, $currentUserId, $title, $kifuText, $isPublic, $senteName, $goteName, $initialBoardText);
                 echo json_encode(['success' => true, 'id' => $id]);
             } else {
-                $newId = $kifuModel->save($currentUserId, $title, $kifuText, $isPublic, $senteName, $goteName);
+                $newId = $kifuModel->save($currentUserId, $title, $kifuText, $isPublic, $senteName, $goteName, $initialBoardText);
                 echo json_encode(['success' => true, 'id' => $newId]);
             }
         } catch (Exception $e) {
@@ -75,12 +76,17 @@ if ($method === 'POST') {
         }
         $kifu = $kifuModel->get($id);
         if ($kifu) {
-            // Filter: if private and not owner?
             if (!$kifu['is_public'] && $kifu['user_id'] !== $currentUserId) {
                  http_response_code(403);
                  echo json_encode(['error' => 'Private kifu']);
                  exit;
             }
+
+            if (!empty($kifu['initial_board_text'])) {
+                $kifu['initial_board'] = json_decode($kifu['initial_board_text'], true);
+            }
+            unset($kifu['initial_board_text']);
+
             echo json_encode(['success' => true, 'data' => $kifu]);
         } else {
             http_response_code(404);

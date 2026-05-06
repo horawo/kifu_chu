@@ -33,13 +33,13 @@ try {
     
     // Insert test user
     echo "\nCreating test user...\n";
-    $testUsername = 'testuser';
+    $testUserId = 'testuser';
+    $testUsername = 'Test User';
     $testPassword = password_hash('password123', PASSWORD_DEFAULT);
-    $testUserId = 'user_test_default';
     
     $stmt = $pdo->prepare("INSERT IGNORE INTO t_user (user_id, username, password_hash) VALUES (?, ?, ?)");
     if ($stmt->execute([$testUserId, $testUsername, $testPassword])) {
-        echo "Test user created: username='testuser', password='password123'\n";
+        echo "Test user created: user_id='testuser', password='password123'\n";
     } else {
         echo "Test user already exists or creation failed\n";
     }

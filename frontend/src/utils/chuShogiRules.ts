@@ -37,7 +37,7 @@ export const INITIAL_BOARD_TYPES: (PieceType | null)[][] = [
 export function createInitialBoard(): BoardState {
     // Map types to Piece objects
     return INITIAL_BOARD_TYPES.map((row, y) => {
-        return row.map((type, x) => {
+        return row.map((type) => {
             if (!type) return null;
             // Determine owner: Top half (y < 6) is Gote, Bottom is Sente
             const owner: Player = y < 6 ? 'gote' : 'sente';

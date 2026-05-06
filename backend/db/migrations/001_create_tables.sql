@@ -1,7 +1,7 @@
 -- t_user
 CREATE TABLE IF NOT EXISTS t_user (
     user_id VARCHAR(255) PRIMARY KEY,
-    username VARCHAR(255) NOT NULL UNIQUE,
+    username VARCHAR(255) NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
     is_banned BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
