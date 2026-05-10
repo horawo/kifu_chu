@@ -1,6 +1,7 @@
 import React from 'react';
 import type { BoardState, Position, Player } from '../types';
 import Piece from './Piece';
+import type { InfluenceSquare } from '../utils/boardAnalysis';
 // import { isValidPos } from '../utils/chuShogiRules'; // Unused
 
 interface BoardProps {
@@ -14,9 +15,11 @@ interface BoardProps {
         piece: any; // Using any for simplicity in import, but should be Piece
         onConfirm: (promote: boolean) => void;
     } | null;
+    influenceMap?: InfluenceSquare[][];
+    showInfluence?: boolean;
 }
 
-const Board: React.FC<BoardProps> = ({ board, onSquareClick, selectedPos, validMoves, promotionCandidate }) => {
+const Board: React.FC<BoardProps> = ({ board, onSquareClick, selectedPos, validMoves, promotionCandidate, influenceMap, showInfluence }) => {
     // 12 columns, 12 rows
     const styles: React.CSSProperties = {
         display: 'grid',
@@ -58,6 +61,55 @@ const Board: React.FC<BoardProps> = ({ board, onSquareClick, selectedPos, validM
             WebkitUserSelect: 'none',
             msUserSelect: 'none'
         };
+    };
+
+    /**
+     * Build the visual overlay for influence strength on one square.
+     */
+    const influenceStyle = (x: number, y: number): React.CSSProperties | null => {
+        if (!showInfluence || !influenceMap) return null;
+        const influence = influenceMap[y][x];
+        const diff = influence.sente - influence.gote;
+        if (diff === 0) return null;
+
+        const strength = Math.min(Math.abs(diff), 5);
+        const alpha = 0.12 + strength * 0.07;
+        const color = diff > 0 ? `rgba(20, 90, 210, ${alpha})` : `rgba(210, 60, 40, ${alpha})`;
+
+        return {
+            position: 'absolute',
+            inset: 0,
+            backgroundColor: color,
+            pointerEvents: 'none',
+            zIndex: 1
+        };
+    };
+
+    /**
+     * Render a small count badge when influence is visible.
+     */
+    const renderInfluenceBadge = (x: number, y: number) => {
+        if (!showInfluence || !influenceMap) return null;
+        const influence = influenceMap[y][x];
+        if (influence.sente === 0 && influence.gote === 0) return null;
+
+        return (
+            <div style={{
+                position: 'absolute',
+                right: '2px',
+                bottom: '1px',
+                zIndex: 3,
+                fontSize: '9px',
+                lineHeight: '10px',
+                color: '#222',
+                backgroundColor: 'rgba(255,255,255,0.65)',
+                borderRadius: '2px',
+                padding: '0 2px',
+                pointerEvents: 'none'
+            }}>
+                {influence.sente}/{influence.gote}
+            </div>
+        );
     };
 
     // Modal Overlay Component (Inline for now)
@@ -118,6 +170,7 @@ const Board: React.FC<BoardProps> = ({ board, onSquareClick, selectedPos, validM
                         if (!promotionCandidate) onSquareClick({ x, y });
                     }}
                 >
+                    {influenceStyle(x, y) && <div style={influenceStyle(x, y) || undefined} />}
                     {piece && (
                         <Piece
                             key={`${piece.owner}-${piece.type}-${piece.isPromoted}`}
@@ -125,6 +178,7 @@ const Board: React.FC<BoardProps> = ({ board, onSquareClick, selectedPos, validM
                             isSelected={selectedPos?.x === x && selectedPos?.y === y}
                         />
                     )}
+                    {renderInfluenceBadge(x, y)}
                     {isPromotionTarget && renderPromotionModal()}
                 </div>
             );
