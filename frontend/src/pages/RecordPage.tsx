@@ -7,6 +7,7 @@ import SaveKifuDialog from '../components/SaveKifuDialog';
 import { createInitialBoard, getLegalMoves, canPromote, hasLionPower, isValidPos } from '../utils/chuShogiRules';
 import { parseCSA } from '../utils/csaParser';
 import { PIECE_DATA } from '../utils/pieceData';
+import { calculateInfluenceMap, evaluatePosition } from '../utils/boardAnalysis';
 import { api } from '../api/client';
 
 const RecordPage: React.FC = () => {
@@ -52,6 +53,10 @@ const RecordPage: React.FC = () => {
     const [editMode, setEditMode] = useState<boolean>(true);
     const [senteName, setSenteName] = useState<string>('先手');
     const [goteName, setGoteName] = useState<string>('後手');
+    const [showInfluence, setShowInfluence] = useState<boolean>(false);
+
+    const influenceMap = React.useMemo(() => calculateInfluenceMap(displayBoard), [displayBoard]);
+    const positionEvaluation = React.useMemo(() => evaluatePosition(displayBoard, influenceMap), [displayBoard, influenceMap]);
 
     /**
      * Clone a board so move replay never mutates the saved starting position.
@@ -404,6 +409,8 @@ const RecordPage: React.FC = () => {
                     selectedPos={multistepPending ? multistepPending.step1 : selectedPos}
                     validMoves={validMoves}
                     currentPlayer={currentPlayer}
+                    influenceMap={influenceMap}
+                    showInfluence={showInfluence}
                     promotionCandidate={promotionPending ? {
                         pos: promotionPending.to,
                         piece: promotionPending.piece,
@@ -414,6 +421,36 @@ const RecordPage: React.FC = () => {
 
             {/* 右側：再生コントロール、指し手一覧、保存ボタン */}
             <div style={{ width: '320px', display: 'flex', flexDirection: 'column', gap: '15px', height: '613px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', backgroundColor: '#fff', padding: '12px', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', flexShrink: 0, textAlign: 'left' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', fontWeight: 'bold', color: '#333', cursor: 'pointer' }}>
+                        <input
+                            type="checkbox"
+                            checked={showInfluence}
+                            onChange={(event) => setShowInfluence(event.target.checked)}
+                        />
+                        効きの強弱を表示
+                    </label>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', borderTop: '1px solid #eee', paddingTop: '8px', color: '#333' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                            <span style={{ fontSize: '13px', fontWeight: 'bold' }}>形勢ガイド</span>
+                            <span style={{ fontSize: '16px', fontWeight: 'bold', color: positionEvaluation.total >= 0 ? '#145ad2' : '#d23c28' }}>
+                                {positionEvaluation.label}
+                            </span>
+                        </div>
+                        <div style={{ fontSize: '12px', color: '#555' }}>{positionEvaluation.guide}</div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', rowGap: '2px', fontSize: '12px', color: '#555' }}>
+                            <span>評価値</span>
+                            <span>{positionEvaluation.total.toFixed(1)}</span>
+                            <span>駒価値差</span>
+                            <span>{positionEvaluation.material.diff.toFixed(1)}</span>
+                            <span>効き差</span>
+                            <span>{positionEvaluation.influence.diff}</span>
+                            <span>玉周辺危険度</span>
+                            <span>{positionEvaluation.kingDanger.sente}/{positionEvaluation.kingDanger.gote}</span>
+                        </div>
+                    </div>
+                </div>
+
                 {/* 1段目：操作ボタン群と手数表示 */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', backgroundColor: '#fff', padding: '12px', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', flexShrink: 0 }}>
                     <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', width: '100%' }}>
